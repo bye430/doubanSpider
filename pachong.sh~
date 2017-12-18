@@ -1,0 +1,196 @@
+#########################################################################
+# File Name: pachong.sh
+# Author: keemun
+# 豆瓣读书爬虫
+# Created Time: 2017年12月07日 星期四 21时46分39秒
+#########################################################################
+#!/bin/bash
+tags="
+小说
+外国文学
+文学
+随笔
+中国文学
+经典
+日本文学
+散文
+村上春树
+诗歌
+童话
+儿童文学
+古典文学
+王小波
+杂文
+名著
+余华
+张爱玲
+当代文学
+钱钟书
+外国名著
+鲁迅
+诗词
+茨威格
+米兰·昆德拉
+杜拉斯
+港台
+漫画
+推理
+绘本
+青春
+东野圭吾
+科幻
+言情
+悬疑
+奇幻
+武侠
+日本漫画
+韩寒
+耽美
+亦舒
+推理小说
+三毛
+网络小说
+安妮宝贝
+郭敬明
+穿越
+金庸
+阿加莎·克里斯蒂
+轻小说
+科幻小说
+几米
+青春文学
+魔幻
+幾米
+张小娴
+J.K.罗琳
+古龙
+高木直子
+沧月
+落落
+张悦然
+校园
+历史
+心理学
+哲学
+传记
+文化
+社会学
+艺术
+设计
+社会
+政治
+建筑
+宗教
+电影
+数学
+政治学
+回忆录
+中国历史
+思想
+国学
+人文
+音乐
+人物传记
+绘画
+艺术史
+戏剧
+佛教
+军事
+二战
+西方哲学
+近代史
+考古
+自由主义
+美术
+爱情
+旅行
+生活
+成长
+励志
+心理
+摄影
+女性
+职场
+教育
+美食
+游记
+灵修
+健康
+情感
+手工
+两性
+养生
+人际关系
+家居
+自助游
+经济学
+管理
+经济
+商业
+金融
+投资
+营销
+创业
+理财
+广告
+股票
+企业史
+策划
+科普
+互联网
+编程
+科学
+交互设计
+用户体验
+算法
+科技
+web
+UE
+通信
+交互
+UCD
+神经网络
+程序"
+function pachong(){
+j=1;
+while [ 1 ]
+do 
+#j表示第几页，i为当前页的第一本书，a用于辅助计算
+	a=$((j-1));
+	i=$((a*20));
+	flag=-1;
+#每三秒爬一页
+	sleep 3
+#finishedflag表示当前标签是否爬完
+	if [ -f "finishedflag" ] ;then
+		rm finishedflag
+	fi
+#ratingflag为1则当前读到的$line是评分,否则是书名
+	ratingflag=1
+#下载并提取书名和评分，保存到bookdata当中
+ 	curl "https://book.douban.com/tag/${1}?start=$i&type=T" >curl
+	cat curl|egrep  -e 'title=".*"' -e 'rating_nums'|sed 's/^.*title=\"\([^"]*\)\"/\1/'|sed 	's:^.*\([0-9]\.[0-9]\)</span>:\1:'|sed '/^.*value.*$/d'|while read line;
+	do 
+		touch finishedflag;
+		ratingflag=`echo $line|egrep '^[0-9]\.[0-9]$'|wc -l`
+		if [ $ratingflag -eq 0 ];then
+			name=$line
+		else 
+			echo $name >>$line
+		fi
+	done
+
+if [ ! -f "finishedflag" ] ;then
+return 0
+fi
+#跳转到下一页
+j=$((j+1));
+done;
+}
+
+for tag in `echo $tags`
+do 
+echo $tag
+ pachong $tag
+done
+
